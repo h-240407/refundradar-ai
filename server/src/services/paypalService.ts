@@ -1,5 +1,5 @@
 import { store } from '../data/store.js';
-import type { Notification, RefundStatus } from '../types/index.js';
+import type { Notification } from '../types/index.js';
 
 export interface PayPalConfig {
   mode: 'sandbox' | 'live';
@@ -190,3 +190,4 @@ export class PayPalService {
 }
 
 export const paypalService = new PayPalService();
+

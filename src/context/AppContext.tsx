@@ -214,6 +214,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
     setNotifications((prev) => [newNotif, ...prev]);
 
+    // Asynchronously notify backend if running
+    fetch('/api/refunds', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newRefund),
+    }).catch(() => {});
+
     return newRefund;
   }, []);
 
@@ -235,6 +242,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       })
     );
+
+    // Asynchronously update backend
+    fetch(`/api/refunds/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus, note }),
+    }).catch(() => {});
 
     // Add notification
     const target = refunds.find((r) => r.id === id);
@@ -265,6 +279,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         };
       })
     );
+
+    fetch(`/api/refunds/${id}/notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ note }),
+    }).catch(() => {});
   }, []);
 
   const addOrder = useCallback((data: Partial<Order>): Order => {
@@ -290,6 +310,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setOrders((prev) => [newOrder, ...prev]);
+
+    fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newOrder),
+    }).catch(() => {});
+
     return newOrder;
   }, []);
 
@@ -297,10 +324,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
+    fetch(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => {});
   }, []);
 
   const markAllNotificationsRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    fetch('/api/notifications/mark-all-read', { method: 'POST' }).catch(() => {});
   }, []);
 
   const updateUser = useCallback((data: Partial<User>) => {

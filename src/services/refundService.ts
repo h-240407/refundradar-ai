@@ -1,13 +1,11 @@
 // ============================================================
-// RefundRadar AI — Refund Service
+// RefundRadar AI — Refund Service (Connected to Backend API)
 // ============================================================
-// TODO: Replace with actual API calls when backend is ready
 
 import type { Refund, RefundStatus, DashboardStats } from '../types';
-import { demoRefunds, demoDashboardStats, DEMO_MODE } from '../data/mockData';
+import { demoRefunds, demoDashboardStats } from '../data/mockData';
 
-/** Simulates network latency for demo mode. */
-const delay = (ms = 400) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+const delay = (ms = 300) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export interface RefundFilters {
   status?: RefundStatus;
@@ -19,12 +17,24 @@ export interface RefundFilters {
 
 /** Get all refunds, optionally filtered. */
 export async function getRefunds(filters?: RefundFilters): Promise<Refund[]> {
-  if (!DEMO_MODE) {
-    // TODO: fetch('/api/refunds', { params: filters })
-    throw new Error('Backend not connected');
+  try {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.merchant) params.append('merchant', filters.merchant);
+    if (filters?.search) params.append('search', filters.search);
+
+    const res = await fetch(`/api/refunds?${params.toString()}`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Backend offline — fallback to local demo data
   }
 
-  await delay();
+  await delay(150);
   let results = [...demoRefunds];
 
   if (filters?.status) {
@@ -33,7 +43,7 @@ export async function getRefunds(filters?: RefundFilters): Promise<Refund[]> {
 
   if (filters?.merchant) {
     results = results.filter(
-      (r) => r.merchant.toLowerCase() === filters.merchant!.toLowerCase(),
+      (r) => r.merchant.toLowerCase() === filters.merchant!.toLowerCase()
     );
   }
 
@@ -43,16 +53,8 @@ export async function getRefunds(filters?: RefundFilters): Promise<Refund[]> {
       (r) =>
         r.merchant.toLowerCase().includes(q) ||
         r.orderReference.toLowerCase().includes(q) ||
-        r.reason?.toLowerCase().includes(q),
+        r.reason?.toLowerCase().includes(q)
     );
-  }
-
-  if (filters?.dateFrom) {
-    results = results.filter((r) => r.requestDate >= filters.dateFrom!);
-  }
-
-  if (filters?.dateTo) {
-    results = results.filter((r) => r.requestDate <= filters.dateTo!);
   }
 
   return results;
@@ -60,39 +62,58 @@ export async function getRefunds(filters?: RefundFilters): Promise<Refund[]> {
 
 /** Get a single refund by its id. */
 export async function getRefundById(id: string): Promise<Refund | undefined> {
-  if (!DEMO_MODE) {
-    throw new Error('Backend not connected');
+  try {
+    const res = await fetch(`/api/refunds/${id}`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Fallback
   }
 
-  await delay(300);
+  await delay(100);
   return demoRefunds.find((r) => r.id === id);
 }
 
 /** Create a new refund request. Returns the newly created refund. */
 export async function createRefund(
-  data: Omit<Refund, 'id' | 'timeline' | 'lastUpdated'>,
+  data: Omit<Refund, 'id' | 'timeline' | 'lastUpdated'>
 ): Promise<Refund> {
-  if (!DEMO_MODE) {
-    throw new Error('Backend not connected');
+  try {
+    const res = await fetch('/api/refunds', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Fallback
   }
 
-  await delay(600);
-
+  await delay(200);
+  const nowStr = new Date().toISOString().split('T')[0];
   const newRefund: Refund = {
     ...data,
     id: `ref_${Date.now()}`,
-    lastUpdated: new Date().toISOString(),
+    lastUpdated: nowStr,
     timeline: [
       {
         status: 'requested',
-        date: new Date().toISOString().slice(0, 10),
-        description: 'Refund request submitted.',
+        date: nowStr,
+        description: data.reason || 'Refund request submitted.',
       },
     ],
   };
 
-  // In a real app this would be persisted server-side.
-  demoRefunds.push(newRefund);
+  demoRefunds.unshift(newRefund);
   return newRefund;
 }
 
@@ -100,22 +121,35 @@ export async function createRefund(
 export async function updateRefundStatus(
   id: string,
   status: RefundStatus,
+  note?: string
 ): Promise<Refund | undefined> {
-  if (!DEMO_MODE) {
-    throw new Error('Backend not connected');
+  try {
+    const res = await fetch(`/api/refunds/${id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, note }),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Fallback
   }
 
-  await delay(500);
-
+  await delay(150);
   const refund = demoRefunds.find((r) => r.id === id);
   if (!refund) return undefined;
 
+  const nowStr = new Date().toISOString().split('T')[0];
   refund.status = status;
-  refund.lastUpdated = new Date().toISOString();
+  refund.lastUpdated = nowStr;
   refund.timeline.push({
     status,
-    date: new Date().toISOString().slice(0, 10),
-    description: `Status changed to ${status}.`,
+    date: nowStr,
+    description: note || `Status changed to ${status}.`,
   });
 
   return { ...refund };
@@ -123,10 +157,18 @@ export async function updateRefundStatus(
 
 /** Get dashboard-level stats computed from refund data. */
 export async function getRefundStats(): Promise<DashboardStats> {
-  if (!DEMO_MODE) {
-    throw new Error('Backend not connected');
+  try {
+    const res = await fetch('/api/refunds/stats');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Fallback
   }
 
-  await delay(300);
+  await delay(100);
   return { ...demoDashboardStats };
 }

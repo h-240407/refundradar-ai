@@ -77,3 +77,4 @@ export interface DashboardStats {
   actionRequired: number;
   currency: string;
 }
+

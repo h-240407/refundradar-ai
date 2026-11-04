@@ -238,3 +238,4 @@ export const initialNotifications: Notification[] = [
     actionUrl: '/app/refunds/ref_004',
   },
 ];
+

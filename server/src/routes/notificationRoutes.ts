@@ -29,3 +29,4 @@ notificationRouter.post('/mark-all-read', (_req, res) => {
   store.markAllNotificationsRead();
   res.json({ success: true, message: 'All notifications marked as read' });
 });
+

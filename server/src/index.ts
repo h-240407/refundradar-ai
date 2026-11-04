@@ -72,3 +72,4 @@ app.listen(PORT, () => {
   console.log(`🧠 AI Engine: Google Gemini API (${process.env.GEMINI_API_KEY ? 'Configured' : 'Simulated / Rule-engine Mode'})`);
   console.log(`======================================================\n`);
 });
+

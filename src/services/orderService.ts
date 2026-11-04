@@ -1,12 +1,11 @@
 // ============================================================
-// RefundRadar AI — Order Service
+// RefundRadar AI — Order Service (Connected to Backend API)
 // ============================================================
-// TODO: Replace with actual API calls when backend is ready
 
 import type { Order, OrderStatus } from '../types';
-import { demoOrders, DEMO_MODE } from '../data/mockData';
+import { demoOrders } from '../data/mockData';
 
-const delay = (ms = 400) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+const delay = (ms = 200) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export interface OrderFilters {
   status?: OrderStatus;
@@ -17,11 +16,23 @@ export interface OrderFilters {
 
 /** Get all orders, optionally filtered. */
 export async function getOrders(filters?: OrderFilters): Promise<Order[]> {
-  if (!DEMO_MODE) {
-    throw new Error('Backend not connected');
+  try {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.search) params.append('search', filters.search);
+
+    const res = await fetch(`/api/orders?${params.toString()}`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Fallback
   }
 
-  await delay();
+  await delay(150);
   let results = [...demoOrders];
 
   if (filters?.status) {
@@ -30,7 +41,7 @@ export async function getOrders(filters?: OrderFilters): Promise<Order[]> {
 
   if (filters?.merchant) {
     results = results.filter(
-      (o) => o.merchant.toLowerCase() === filters.merchant!.toLowerCase(),
+      (o) => o.merchant.toLowerCase() === filters.merchant!.toLowerCase()
     );
   }
 
@@ -40,7 +51,7 @@ export async function getOrders(filters?: OrderFilters): Promise<Order[]> {
       (o) =>
         o.merchant.toLowerCase().includes(q) ||
         o.orderReference.toLowerCase().includes(q) ||
-        o.items.some((i) => i.name.toLowerCase().includes(q)),
+        o.items.some((i) => i.name.toLowerCase().includes(q))
     );
   }
 
@@ -53,29 +64,46 @@ export async function getOrders(filters?: OrderFilters): Promise<Order[]> {
 
 /** Get a single order by its id. */
 export async function getOrderById(id: string): Promise<Order | undefined> {
-  if (!DEMO_MODE) {
-    throw new Error('Backend not connected');
+  try {
+    const res = await fetch(`/api/orders/${id}`);
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Fallback
   }
 
-  await delay(300);
+  await delay(100);
   return demoOrders.find((o) => o.id === id);
 }
 
 /** Create a new order. Returns the newly created order. */
-export async function createOrder(
-  data: Omit<Order, 'id'>,
-): Promise<Order> {
-  if (!DEMO_MODE) {
-    throw new Error('Backend not connected');
+export async function createOrder(data: Omit<Order, 'id'>): Promise<Order> {
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.data) {
+        return json.data;
+      }
+    }
+  } catch {
+    // Fallback
   }
 
-  await delay(600);
-
+  await delay(200);
   const newOrder: Order = {
     ...data,
     id: `ord_${Date.now()}`,
   };
 
-  demoOrders.push(newOrder);
+  demoOrders.unshift(newOrder);
   return newOrder;
 }

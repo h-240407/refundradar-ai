@@ -3,8 +3,8 @@ services:
     name: refundradar-ai
     env: node
     plan: free
-    buildCommand: npm install && cd server && npm install && cd .. && npm run build && npm run server:build
-    startCommand: npm run server:start
+    buildCommand: npm run install:all && npm run build:all
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -18,3 +18,4 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+

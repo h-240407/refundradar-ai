@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 import { refundRouter } from './routes/refundRoutes.js';
@@ -63,6 +64,16 @@ app.post('/api/reset', (_req, res) => {
   store.reset();
   res.json({ success: true, message: 'Database reset to default seed records' });
 });
+
+// Production: Serve static frontend build if present
+const distPath = path.resolve(__dirname, '../../dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.resolve(distPath, 'index.html'));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`\n======================================================`);

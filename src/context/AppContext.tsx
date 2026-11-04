@@ -15,6 +15,7 @@ import {
 } from '../data/mockData';
 import { AppContext } from './context';
 import type { AppSettings } from './context';
+import { API_BASE } from '../services/apiConfig';
 
 const DEFAULT_SETTINGS: AppSettings = {
   paypalConnected: true,
@@ -215,7 +216,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setNotifications((prev) => [newNotif, ...prev]);
 
     // Asynchronously notify backend if running
-    fetch('/api/refunds', {
+    fetch(`${API_BASE}/api/refunds`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newRefund),
@@ -244,7 +245,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
 
     // Asynchronously update backend
-    fetch(`/api/refunds/${id}/status`, {
+    fetch(`${API_BASE}/api/refunds/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus, note }),
@@ -280,7 +281,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
 
-    fetch(`/api/refunds/${id}/notes`, {
+    fetch(`${API_BASE}/api/refunds/${id}/notes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ note }),
@@ -311,7 +312,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setOrders((prev) => [newOrder, ...prev]);
 
-    fetch('/api/orders', {
+    fetch(`${API_BASE}/api/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newOrder),
@@ -324,12 +325,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
-    fetch(`/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => {});
+    fetch(`${API_BASE}/api/notifications/${id}/read`, { method: 'PATCH' }).catch(() => {});
   }, []);
 
   const markAllNotificationsRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    fetch('/api/notifications/mark-all-read', { method: 'POST' }).catch(() => {});
+    fetch(`${API_BASE}/api/notifications/mark-all-read`, { method: 'POST' }).catch(() => {});
   }, []);
 
   const updateUser = useCallback((data: Partial<User>) => {
@@ -342,7 +343,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const syncPayPalSandbox = useCallback(async () => {
     try {
-      const res = await fetch('/api/paypal/sync', { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/paypal/sync`, { method: 'POST' });
       if (res.ok) {
         // Backend processed sync
       }

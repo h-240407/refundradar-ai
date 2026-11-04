@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: refundradar-ai
+    env: node
+    plan: free
+    buildCommand: npm install && cd server && npm install && cd .. && npm run build && npm run server:build
+    startCommand: npm run server:start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: PAYPAL_MODE
+        value: sandbox
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

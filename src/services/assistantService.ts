@@ -5,6 +5,7 @@
 
 import type { ChatMessage, AssistantSuggestion } from '../types';
 import { demoSuggestions, demoRefunds } from '../data/mockData';
+import { API_BASE } from './apiConfig';
 
 const delay = (ms = 600) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -143,7 +144,7 @@ function findResponse(message: string): string {
 export async function sendMessage(message: string): Promise<ChatMessage> {
   // 1. Attempt live backend AI endpoint
   try {
-    const res = await fetch('/api/assistant/chat', {
+    const res = await fetch(`${API_BASE}/api/assistant/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message }),

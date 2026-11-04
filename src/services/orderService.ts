@@ -4,6 +4,7 @@
 
 import type { Order, OrderStatus } from '../types';
 import { demoOrders } from '../data/mockData';
+import { API_BASE } from './apiConfig';
 
 const delay = (ms = 200) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -21,7 +22,7 @@ export async function getOrders(filters?: OrderFilters): Promise<Order[]> {
     if (filters?.status) params.append('status', filters.status);
     if (filters?.search) params.append('search', filters.search);
 
-    const res = await fetch(`/api/orders?${params.toString()}`);
+    const res = await fetch(`${API_BASE}/api/orders?${params.toString()}`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
@@ -65,7 +66,7 @@ export async function getOrders(filters?: OrderFilters): Promise<Order[]> {
 /** Get a single order by its id. */
 export async function getOrderById(id: string): Promise<Order | undefined> {
   try {
-    const res = await fetch(`/api/orders/${id}`);
+    const res = await fetch(`${API_BASE}/api/orders/${id}`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && json.data) {
@@ -83,7 +84,7 @@ export async function getOrderById(id: string): Promise<Order | undefined> {
 /** Create a new order. Returns the newly created order. */
 export async function createOrder(data: Omit<Order, 'id'>): Promise<Order> {
   try {
-    const res = await fetch('/api/orders', {
+    const res = await fetch(`${API_BASE}/api/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),

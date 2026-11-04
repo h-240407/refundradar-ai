@@ -4,6 +4,7 @@
 
 import type { Refund, RefundStatus, DashboardStats } from '../types';
 import { demoRefunds, demoDashboardStats } from '../data/mockData';
+import { API_BASE } from './apiConfig';
 
 const delay = (ms = 300) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -23,7 +24,7 @@ export async function getRefunds(filters?: RefundFilters): Promise<Refund[]> {
     if (filters?.merchant) params.append('merchant', filters.merchant);
     if (filters?.search) params.append('search', filters.search);
 
-    const res = await fetch(`/api/refunds?${params.toString()}`);
+    const res = await fetch(`${API_BASE}/api/refunds?${params.toString()}`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
@@ -63,7 +64,7 @@ export async function getRefunds(filters?: RefundFilters): Promise<Refund[]> {
 /** Get a single refund by its id. */
 export async function getRefundById(id: string): Promise<Refund | undefined> {
   try {
-    const res = await fetch(`/api/refunds/${id}`);
+    const res = await fetch(`${API_BASE}/api/refunds/${id}`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && json.data) {
@@ -83,7 +84,7 @@ export async function createRefund(
   data: Omit<Refund, 'id' | 'timeline' | 'lastUpdated'>
 ): Promise<Refund> {
   try {
-    const res = await fetch('/api/refunds', {
+    const res = await fetch(`${API_BASE}/api/refunds`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -124,7 +125,7 @@ export async function updateRefundStatus(
   note?: string
 ): Promise<Refund | undefined> {
   try {
-    const res = await fetch(`/api/refunds/${id}/status`, {
+    const res = await fetch(`${API_BASE}/api/refunds/${id}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status, note }),
@@ -158,7 +159,7 @@ export async function updateRefundStatus(
 /** Get dashboard-level stats computed from refund data. */
 export async function getRefundStats(): Promise<DashboardStats> {
   try {
-    const res = await fetch('/api/refunds/stats');
+    const res = await fetch(`${API_BASE}/api/refunds/stats`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && json.data) {

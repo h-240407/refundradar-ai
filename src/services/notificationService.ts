@@ -4,13 +4,14 @@
 
 import type { Notification } from '../types';
 import { demoNotifications } from '../data/mockData';
+import { API_BASE } from './apiConfig';
 
 const delay = (ms = 150) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /** Get all notifications, newest first. */
 export async function getNotifications(): Promise<Notification[]> {
   try {
-    const res = await fetch('/api/notifications');
+    const res = await fetch(`${API_BASE}/api/notifications`);
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
@@ -30,7 +31,7 @@ export async function getNotifications(): Promise<Notification[]> {
 /** Mark a single notification as read. */
 export async function markAsRead(id: string): Promise<Notification | undefined> {
   try {
-    const res = await fetch(`/api/notifications/${id}/read`, { method: 'PATCH' });
+    const res = await fetch(`${API_BASE}/api/notifications/${id}/read`, { method: 'PATCH' });
     if (res.ok) {
       const target = demoNotifications.find((n) => n.id === id);
       if (target) target.read = true;
@@ -51,7 +52,7 @@ export async function markAsRead(id: string): Promise<Notification | undefined> 
 /** Mark every notification as read. */
 export async function markAllAsRead(): Promise<void> {
   try {
-    const res = await fetch('/api/notifications/mark-all-read', { method: 'POST' });
+    const res = await fetch(`${API_BASE}/api/notifications/mark-all-read`, { method: 'POST' });
     if (res.ok) {
       for (const n of demoNotifications) {
         n.read = true;

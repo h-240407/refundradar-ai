@@ -312,7 +312,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, []);
 
   const syncPayPalSandbox = useCallback(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const res = await fetch('/api/paypal/sync', { method: 'POST' });
+      if (res.ok) {
+        // Backend processed sync
+      }
+    } catch {
+      // Backend not running — fallback to local timer
+      await new Promise((resolve) => setTimeout(resolve, 800));
+    }
     const nowStr = new Date().toISOString();
     const notif: Notification = {
       id: `notif_${Date.now()}`,

@@ -141,8 +141,31 @@ function findResponse(message: string): string {
 
 /** Send a user message and receive a contextual assistant response. */
 export async function sendMessage(message: string): Promise<ChatMessage> {
-  await delay();
+  // 1. Attempt live backend AI endpoint
+  try {
+    const res = await fetch('/api/assistant/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message }),
+    });
 
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.data) {
+        return {
+          id: data.data.id || `msg_${Date.now()}`,
+          role: 'assistant',
+          content: data.data.content,
+          timestamp: new Date().toISOString(),
+        };
+      }
+    }
+  } catch {
+    // Backend offline or unreachable — fallback to local pattern matching
+  }
+
+  // 2. Local Fallback Pattern Matching
+  await delay(400);
   const responseContent = findResponse(message);
 
   const response: ChatMessage = {

@@ -8,3 +8,4 @@
  * Can be overridden via VITE_API_URL environment variable for split-domain deployments (e.g. Vercel frontend + Render backend).
  */
 export const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
